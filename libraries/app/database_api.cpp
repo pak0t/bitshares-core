@@ -191,14 +191,6 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       {
          return fc::raw::pack(item);
       }
-      vector<char> get_subscription_key( const public_key_type& item )const
-      {
-         return fc::raw::pack(item);
-      }
-      vector<char> get_subscription_key( const address& item )const
-      {
-         return fc::raw::pack(item);
-      }
 
       template<typename T>
       void subscribe_to_item( const T& item )const
@@ -740,16 +732,6 @@ vector<vector<account_id_type>> database_api_impl::get_key_references( vector<pu
       address a4( pts_address(key, true, 0)  );
       address a5( key );
 
-      if( _enabled_auto_subscription )
-      {
-         subscribe_to_item( key );
-         subscribe_to_item( a1 );
-         subscribe_to_item( a2 );
-         subscribe_to_item( a3 );
-         subscribe_to_item( a4 );
-         subscribe_to_item( a5 );
-      }
-
       vector<account_id_type> result;
 
       for( auto& a : {a1,a2,a3,a4,a5} )
@@ -1238,8 +1220,6 @@ vector<balance_object> database_api_impl::get_balance_objects( const vector<addr
 
       for( const auto& owner : addrs )
       {
-         if( _enabled_auto_subscription )
-            subscribe_to_item( owner );
          auto itr = by_owner_idx.lower_bound( boost::make_tuple( owner, asset_id_type(0) ) );
          while( itr != by_owner_idx.end() && itr->owner == owner )
          {

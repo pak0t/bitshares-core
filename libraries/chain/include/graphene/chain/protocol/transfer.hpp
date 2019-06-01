@@ -1,4 +1,3 @@
-//***********************************************************************
 /*
  * Copyright (c) 2015 Cryptonomex, Inc., and contributors.
  *
@@ -64,8 +63,29 @@ namespace graphene { namespace chain {
       account_id_type fee_payer()const { return from; }
       void            validate()const;
       share_type      calculate_fee(const fee_parameters_type& k)const;
-int DEBUG;
    };
+//TASK_EDIT***********************************************
+struct STaskMessageOp : public base_operation
+   {
+      struct fee_parameters_type {
+         uint64_t fee       = 20 * GRAPHENE_BLOCKCHAIN_PRECISION;
+         uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large memos.
+      };
+
+      asset            fee;
+      /// Account to transfer asset from
+      account_id_type  from;
+      /// Account to transfer asset to
+      account_id_type  to;
+
+      /// User provided data encrypted to the memo key of the "to" account
+      optional<memo_data> memo;
+
+      account_id_type fee_payer()const { return from; }
+      void            validate()const;
+      share_type      calculate_fee(const fee_parameters_type& k)const;
+   };
+//*******************************************************
 
    /**
     *  @class override_transfer_operation
@@ -107,3 +127,8 @@ FC_REFLECT( graphene::chain::override_transfer_operation::fee_parameters_type, (
 
 FC_REFLECT( graphene::chain::override_transfer_operation, (fee)(issuer)(from)(to)(amount)(memo)(extensions) )
 FC_REFLECT( graphene::chain::transfer_operation, (fee)(from)(to)(amount)(memo)(extensions) )
+//TASK_EDIT***************************
+FC_REFLECT( graphene::chain::STaskMessageOp::fee_parameters_type, (fee)(price_per_kbyte) )
+FC_REFLECT( graphene::chain::STaskMessageOp, (fee)(from)(to)(memo))
+//*************************************
+//*************************************

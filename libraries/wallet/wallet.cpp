@@ -133,6 +133,7 @@ public:
    std::string operator()(const T& op)const;
 
    std::string operator()(const transfer_operation& op)const;
+   std::string operator()(const STaskMessageOp& op)const;//TASK_EDIT
    std::string operator()(const transfer_from_blind_operation& op)const;
    std::string operator()(const transfer_to_blind_operation& op)const;
    std::string operator()(const account_create_operation& op)const;
@@ -2384,6 +2385,37 @@ public:
       return sign_transaction(tx, broadcast);
    } FC_CAPTURE_AND_RETHROW( (from)(to)(amount)(asset_symbol)(memo)(broadcast) ) }
 
+	//TASK_EDIT****************************************
+signed_transaction taskMessage(string from, string to, string asset_symbol, string memo, bool broadcast = false)
+   { try {
+      FC_ASSERT( !self.is_locked() );
+      fc::optional<asset_object> asset_obj = get_asset(asset_symbol);
+      FC_ASSERT(asset_obj, "Could not find asset matching ${asset}", ("asset", asset_symbol));
+
+      account_object from_account = get_account(from);
+      account_object to_account = get_account(to);
+      account_id_type from_id = from_account.id;
+      account_id_type to_id = to_account.id;
+
+      STaskMessageOp xfer_op;
+
+      xfer_op.from = from_id;
+      xfer_op.to = to_id;
+ 
+            xfer_op.memo = memo_data();
+            xfer_op.memo->from = from_account.options.memo_key;
+            xfer_op.memo->to = to_account.options.memo_key;
+            xfer_op.memo->set_message(get_private_key(from_account.options.memo_key),
+                                      to_account.options.memo_key, memo);
+
+      signed_transaction tx;
+      tx.operations.push_back(xfer_op);
+      set_operation_fees( tx, _remote_db->get_global_properties().parameters.get_current_fees());
+      tx.validate();
+
+      return sign_transaction(tx, broadcast);
+   } FC_CAPTURE_AND_RETHROW( (from)(to)(asset_symbol)(memo)(broadcast) ) }
+//**************************************************************
    signed_transaction issue_asset(string to_account, string amount, string symbol,
                                   string memo, bool broadcast = false)
    {
@@ -3071,7 +3103,39 @@ string operation_printer::operator()(const transfer_operation& op) const
    fee(op.fee);
    return memo;
 }
-
+//TASK_EDIT*******************************
+string operation_printer::operator()(const STaskMessageOp& op) const
+{
+   out << "Message from " << wallet.get_account(op.from).name << " to " << wallet.get_account(op.to).name;
+   std::string memo;
+   if( op.memo )
+   {
+      if( wallet.is_locked() )
+      {
+         out << " -- Unlock wallet to see memo.";
+      } else {
+         try {
+            FC_ASSERT(wallet._keys.count(op.memo->to) || wallet._keys.count(op.memo->from), "Memo is encrypted to a key ${to} or ${from} not in this wallet.", ("to", op.memo->to)("from",op.memo->from));
+            if( wallet._keys.count(op.memo->to) ) {
+               auto my_key = wif_to_key(wallet._keys.at(op.memo->to));
+               FC_ASSERT(my_key, "Unable to recover private key to decrypt memo. Wallet may be corrupted.");
+               memo = op.memo->get_message(*my_key, op.memo->from);
+               out << " -- Memo: " << memo;
+            } else {
+               auto my_key = wif_to_key(wallet._keys.at(op.memo->from));
+               FC_ASSERT(my_key, "Unable to recover private key to decrypt memo. Wallet may be corrupted.");
+               memo = op.memo->get_message(*my_key, op.memo->to);
+               out << " -- Memo: " << memo;
+            }
+         } catch (const fc::exception& e) {
+            out << " -- could not decrypt memo";
+         }
+      }
+   }
+   fee(op.fee);
+   return memo;
+}
+//****************************************
 std::string operation_printer::operator()(const account_create_operation& op) const
 {
    out << "Create Account '" << op.name << "'";
@@ -3843,6 +3907,10 @@ signed_transaction wallet_api::transfer(string from, string to, string amount,
                                         string asset_symbol, string memo, bool broadcast /* = false */)
 {
    return my->transfer(from, to, amount, asset_symbol, memo, broadcast);
+}
+signed_transaction wallet_api::taskMessage(string from, string to, string asset_symbol, string memo, bool broadcast /* = false */)
+{
+   return my->taskMessage(from, to, asset_symbol, memo, broadcast);
 }
 signed_transaction wallet_api::create_asset(string issuer,
                                             string symbol,

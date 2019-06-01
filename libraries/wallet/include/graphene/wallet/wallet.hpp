@@ -860,6 +860,15 @@ class wallet_api
                                   string memo,
                                   bool broadcast = false);
 
+//TASK_EDIT******************************************
+	signed_transaction taskMessage(string from,
+                                  string to,
+                                  string asset_symbol,
+                                  string memo,
+                                  bool broadcast = false);
+//****************************************************
+
+
       /**
        *  This method works just like transfer, except it always broadcasts and
        *  returns the transaction ID along with the signed transaction.
@@ -1849,6 +1858,7 @@ FC_API( graphene::wallet::wallet_api,
         (borrow_asset_ext)
         (cancel_order)
         (transfer)
+	(taskMessage)//TASK_EDIT
         (transfer2)
         (get_transaction_id)
         (create_asset)

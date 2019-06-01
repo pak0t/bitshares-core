@@ -49,6 +49,9 @@ namespace graphene { namespace chain {
     */
    typedef fc::static_variant<
             transfer_operation,
+//TASK_EDIT**********************************
+		STaskMessageOp,
+//******************************************
             limit_order_create_operation,
             limit_order_cancel_operation,
             call_order_update_operation,

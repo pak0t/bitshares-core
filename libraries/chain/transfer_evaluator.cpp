@@ -80,7 +80,64 @@ void_result transfer_evaluator::do_apply( const transfer_operation& o )
    db().adjust_balance( o.to, o.amount );
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
+//TASK_EDIT***********************************************************
+void_result CTaskMessageEvaluator::do_evaluate( const STaskMessageOp& op )
+{ /*try {
+   
+   const database& d = db();
 
+   const account_object& from_account    = op.from(d);
+   const account_object& to_account      = op.to(d);
+   const asset_object&   asset_type      = op.amount.asset_id(d);
+
+   try {
+
+      GRAPHENE_ASSERT(
+         is_authorized_asset( d, from_account, asset_type ),
+         transfer_from_account_not_whitelisted,
+         "'from' account ${from} is not whitelisted for asset ${asset}",
+         ("from",op.from)
+         ("asset",op.amount.asset_id)
+         );
+      GRAPHENE_ASSERT(
+         is_authorized_asset( d, to_account, asset_type ),
+         transfer_to_account_not_whitelisted,
+         "'to' account ${to} is not whitelisted for asset ${asset}",
+         ("to",op.to)
+         ("asset",op.amount.asset_id)
+         );
+
+      if( asset_type.is_transfer_restricted() )
+      {
+         GRAPHENE_ASSERT(
+            from_account.id == asset_type.issuer || to_account.id == asset_type.issuer,
+            transfer_restricted_transfer_asset,
+            "Asset ${asset} has transfer_restricted flag enabled",
+            ("asset", op.amount.asset_id)
+          );
+      }
+
+      bool insufficient_balance = d.get_balance( from_account, asset_type ).amount >= op.amount.amount;
+      FC_ASSERT( insufficient_balance,
+                 "Insufficient Balance: ${balance}, unable to transfer '${total_transfer}' from account '${a}' to '${t}'", 
+                 ("a",from_account.name)("t",to_account.name)("total_transfer",d.to_pretty_string(op.amount))("balance",d.to_pretty_string(d.get_balance(from_account, asset_type))) );
+
+      return void_result();
+   } FC_RETHROW_EXCEPTIONS( error, "Unable to transfer message from ${f} to ${t}", ("f",op.from(d).name)("t",op.to(d).name) );
+
+}  FC_CAPTURE_AND_RETHROW( (op) ) */
+return void_result();
+}
+
+void_result CTaskMessageEvaluator::do_apply( const STaskMessageOp& o )
+{
+   /*db().adjust_balance( o.from, -o.amount );
+   db().adjust_balance( o.to, o.amount );
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) */
+return void_result();
+}
+//**************************************************************
 
 
 void_result override_transfer_evaluator::do_evaluate( const override_transfer_operation& op )

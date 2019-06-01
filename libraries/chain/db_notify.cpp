@@ -32,6 +32,12 @@ struct get_impacted_account_visitor
       _impacted.insert( op.to );
       _impacted.insert( op.fee_payer() ); // from
    }
+//TASK_EDIT
+	void operator()( const STaskMessageOp& op )
+   {
+      _impacted.insert( op.to );
+      _impacted.insert( op.fee_payer() ); // from
+   }
    void operator()( const asset_claim_fees_operation& op )
    {
       _impacted.insert( op.fee_payer() ); // issuer
